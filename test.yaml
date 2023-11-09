@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test      
+  labels:
+    app: test
+spec:
+  replicas: 4  # Указываем количество  (подов) - по результатам нагрузочного теста
+  selector:
+    matchLabels:
+      app: test
+  template:
+    metadata:
+      labels:
+        app: test
+    spec:
+      containers:
+      - name: test
+        image: nginx:latest  
+        resources:
+          requests:
+            memory: "128Mi"  # Минимальное требование по памяти
+            cpu: "1"  # Первоначальное требование по CPU (может быть увеличено при необходимости)
+          limits:
+            memory: "128Mi"
+            cpu: "1"  # Пиковое требование по CPU
+        readinessProbe:
+          httpGet:
+            path: /healthz  # Путь к эндпоинту для проверки готовности приложения
+            port: 80
+          initialDelaySeconds: 5  # Задержка перед началом проверок readiness
+          periodSeconds: 5  # Интервал между проверками readiness
+        livenessProbe:
+          httpGet:
+            path: /healthz  # Путь к эндпоинту для проверки живости приложения
+            port: 80
+          initialDelaySeconds: 10  # Задержка перед началом проверок liveness
+          periodSeconds: 10  # Интервал между проверками liveness
+  strategy:
+    type: RollingUpdate  # Механизм обновления подов - пошаговое обновление
+    rollingUpdate:
+      maxUnavailable: 1  # Максимальное количество недоступных подов во время обновления
+      maxSurge: 1  # Максимальное количество дополнительных подов, разрешенных во время обновления
+  minReadySeconds: 10  # Минимальное время, в течение которого под должен быть готов перед тем, как считаться успешно развернутым
+  revisionHistoryLimit: 3  # Храним историю до 3 ревизий
+  progressDeadlineSeconds: 600  # Максимальное время обновления в секундах
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1  # Позволяет одновременно недоступным быть только одному поду
+      maxSurge: 1  # Позволяет запустить на 1 под больше, чем требуется, чтобы обеспечить бесперебойное обновление
+  selector:
+    matchLabels:
+      app: test
