@@ -5,7 +5,7 @@ metadata:
   labels:
     app: test
 spec:
-  replicas: 4  # Указываем количество  (подов) - по результатам нагрузочного теста
+  replicas: 4  # Указываем количество  подов
   selector:
     matchLabels:
       app: test
